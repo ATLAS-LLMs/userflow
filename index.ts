@@ -9,10 +9,13 @@ const port = process.env.PORT || 3000;
  * a flow by calling this endpoint and passing
  * user and flow ids.
  */
-app.get("/flow", (req, res) => {
+app.get("/flows/:flowId", (req, res) => {
   interface GetFlowReq {
-    userId: string;
-    flowId: string;
+    /**
+     * The application's user id, not our internal one. This could
+     * be an email or a uuid.
+     */
+    foreignUserId: string;
   }
   interface GetFlowRes {
     /**
@@ -42,10 +45,9 @@ app.get("/flow", (req, res) => {
  * is for. The react-joyride wrapper, for example, should call this endpoint
  * when steps are executed.
  */
-app.patch("/flow", (req, res) => {
+app.patch("/flows/:flowId", (req, res) => {
   interface PatchFlowReq {
-    userId: string;
-    flowId: string;
+    userId: string;    
     /**
      * id of the step to mark as completed
      */
