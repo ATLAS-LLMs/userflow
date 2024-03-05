@@ -34,14 +34,14 @@ app.get("/flows/:flowName", async (req, res) => {
     };
     steps: Array<{ id: string } & any>;
   }
-  const flowName = req.params["flowName"];  
+  const flowName = req.params["flowName"];
   /**
    * The application's user id, not our internal one. This could
    * be an email or a uuid.
    */
-  const foreignUserId = req.query['foreignUserId']
-  if (!foreignUserId || typeof foreignUserId !== 'string') {
-    res.end(400)
+  const foreignUserId = req.query["foreignUserId"];
+  if (!foreignUserId || typeof foreignUserId !== "string") {
+    res.status(400).end();
     return;
   }
   const flow = await prisma.flow.findFirst({
@@ -63,7 +63,7 @@ app.get("/flows/:flowName", async (req, res) => {
  * is for. The react-joyride wrapper, for example, should call this endpoint
  * when steps are executed.
  */
-app.patch("/flows/:flowId", (req, res) => {
+app.patch("/flows/:flowId", async (req, res) => {
   interface PatchFlowReq {
     foreignUserId: string;
     /**
@@ -74,32 +74,57 @@ app.patch("/flows/:flowId", (req, res) => {
   interface PathFlowRes {
     userId: string;
     flowId: string;
-    stepId: string;
+    stepNumber: string;
   }
+  const { stepNumber, foreignUserId } = req.body;
+  if (!stepNumber || !foreignUserId) {
+    res.status(400).end();
+    return;
+  }
+  const id = Number(req.params["flowId"]);
+  await prisma.flow.update({
+    where: { id },
+    data: {
+      currStepNumber: stepNumber + 1,
+    },
+  });
+  res.json({ id });
 });
 
 /**
  * Returns a list of users and their status for each flow.
- * If you want a UI to consume this data, checkout https://userflow.ai
+ * If you want a UI to consume this data, email matt@joinatlas.ai
  */
 app.get("/users", async (req, res) => {
   interface GetUsersRes {
-    users: Array<{ flows: Array<{ currStepId: string; name: string }> }>;
+    users: Array<{
+      flows: Array<{ currStepId: string; name: string; steps: Array<any> }>;
+    }>;
   }
-  const users = await prisma.user.findMany({ include: { flows: true } })
-  res.json();
+  const users = await prisma.user.findMany({ include: { flows: true } });
+  res.json(users);
 });
 
 /**
  * Create an event that can trigger a flow
  * for a user
  */
-app.post("/event", (req, res) => {
+app.post("/event", async (req, res) => {
   interface PostEventReq {
-    userId: string;
+    foreignUserId: string;
     eventName: string;
   }
-  res.send("Express + TypeScript Server");
+  const { foreignUserId, eventName } = req.body;
+  if (!foreignUserId || !eventName) {
+    res.status(400).end();
+    return;
+  }
+  const { id } = await prisma.event.create({
+    data: {
+      name: eventName,
+    },
+  });
+  res.json({ id });
 });
 
 app.listen(port, () => {

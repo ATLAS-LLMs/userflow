@@ -24,7 +24,7 @@ model Flow {
   name       String
   when       Json
   steps      Json
-  currStepId Int    @default(0)
+  currStepNumber Int    @default(0)
   users      User[]
 }
 
