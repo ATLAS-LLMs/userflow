@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuserflow_docs=self.webpackChunkuserflow_docs||[]).push([[472],{5513:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Why Userflow?","permalink":"/userflow/blog/why","unlisted":false}]}')}}]);
