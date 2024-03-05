@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node index.ts"
+    "start": "ts-node src/index.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -15,6 +15,7 @@
   "dependencies": {
     "@prisma/client": "^5.10.2",
     "body-parser": "^1.20.2",
+    "cron": "^3.1.6",
     "express": "^4.18.3"
   },
   "devDependencies": {

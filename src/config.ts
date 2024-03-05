@@ -27,7 +27,7 @@ class User {
     readonly events: Array<string>
   ) {}
   hasExecuted(flow: FlowConfig): boolean {
-    return this.executedFlows.includes(flow.id);
+    return this.executedFlows.includes(flow.name);
   }
 }
 
@@ -49,10 +49,22 @@ type ConditionConfig = '*' | { type: 'event', name: string }
 // type UserPropertyConditionExpression = string;
 
 interface FlowConfig {
-  id: string;
-  type: 'client' | 'server'
+  name: string;
   when: ConditionConfig;
   steps: Array<StepConfig>;
+}
+
+interface ClientFlowConfig {
+  type: 'client'
+}
+
+interface SeverFlowConfig {
+  type: 'server'
+  /**
+   * Cron string specifcying how often we should check 
+   * the when condition to execute flows for users
+   */
+  schedule: string
 }
 
 interface UserConfig {
@@ -63,7 +75,17 @@ interface Config {
   /**
    * Url for the postgres db backing this service
    */
-  postgresUrl: string;
+  userflowPostgresUrl: string;
+  userpropertyPostgres?: {
+    /**
+     * Url for the postgres db containing user data
+     */
+    url: string 
+    /**
+     * Name of table or view containing user data
+     */
+    table: string
+  }
   user: UserConfig;
   flows: Array<FlowConfig>;
   /**
@@ -76,12 +98,9 @@ interface Config {
   // For now, we just solve the problem via documentation.
   //   target:
   //     | "vercel"
-  //     | "serverless"
   //     | "netlify"
-  //     | "aws-lambda"
+  //     | "supabase"
   //     | "render"
-  //     | "firebase"
   //     | "coherence"
   //     | "flightcontrol";
-  //     | "supabase"
 }

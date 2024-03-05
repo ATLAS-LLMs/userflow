@@ -4,8 +4,6 @@ interface PropertyResolver<T = any> {
 
 class PostgresPropertyResolver implements PropertyResolver {}
 
-class LocalStoragePropertyResolver implements PropertyResolver {}
-
 class SegmentPropertyResolver implements PropertyResolver {}
 
 class Condition {

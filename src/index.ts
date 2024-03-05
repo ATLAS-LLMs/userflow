@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
+import config from '../server-config';
 
 const app: Express = express();
 app.use(bodyParser.json());
@@ -72,7 +73,7 @@ app.patch("/flows/:flowId", async (req, res) => {
     stepId: string;
   }
   interface PathFlowRes {
-    id: number
+    id: number;
   }
   const { stepNumber, foreignUserId } = req.body;
   if (!stepNumber || !foreignUserId) {
@@ -126,5 +127,6 @@ app.post("/event", async (req, res) => {
 });
 
 app.listen(port, () => {
+  const serverFlows = config.flows.filter(({type}) === 'server')
   console.log(`[server]: Server is ready at http://localhost:${port}`);
 });
