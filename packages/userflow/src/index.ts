@@ -1,15 +1,15 @@
-import { PrismaClient } from "@prisma/client";
-import express, { Express } from "express";
-import bodyParser from "body-parser";
-import config from '../server-config';
-import { CronJob } from "cron";
+import { PrismaClient } from '@prisma/client'
+import express, { Express } from 'express'
+import bodyParser from 'body-parser'
+import config from '../server-config'
+import { CronJob } from 'cron'
 import type { FlowConfig } from './config'
-import { executeFlow } from './executor'
+import { executeFlow, executeEventflows as executeEventFlows } from './executor'
 
-const app: Express = express();
-app.use(bodyParser.json());
-const port = process.env.PORT || 3000;
-const prisma = new PrismaClient();
+const app: Express = express()
+app.use(bodyParser.json())
+const port = process.env.PORT || 3000
+const prisma = new PrismaClient()
 
 /**
  * Some flows need to be executed on clients.
@@ -17,13 +17,13 @@ const prisma = new PrismaClient();
  * a flow by calling this endpoint and passing
  * user and flow ids.
  */
-app.get("/flows/:flowName", async (req, res) => {
+app.get('/flows/:flowName', async (req, res) => {
   interface GetFlowRes {
     /**
      * Type will be 'none' if there is
      * no flow that should be executed on the client.
      */
-    type: string | "none";
+    type: string | 'none'
     /**
      * If present, there is an additional check that needs to be performed on the client to determine
      * if the flow should run.
@@ -31,22 +31,22 @@ app.get("/flows/:flowName", async (req, res) => {
      * e.g., { source: "localstorage", property: "hasCompletedFirstTodo", value: "true", op: "==="}
      */
     when?: {
-      source: string;
-      property: string;
-      value: number | boolean | string;
-      op: "<" | ">" | "===";
-    };
-    steps: Array<{ id: string } & any>;
+      source: string
+      property: string
+      value: number | boolean | string
+      op: '<' | '>' | '==='
+    }
+    steps: Array<{ id: string } & any>
   }
-  const flowName = req.params["flowName"];
+  const flowName = req.params['flowName']
   /**
    * The application's user id, not our internal one. This could
    * be an email or a uuid.
    */
-  const foreignUserId = req.query["foreignUserId"];
-  if (!foreignUserId || typeof foreignUserId !== "string") {
-    res.status(400).end();
-    return;
+  const foreignUserId = req.query['foreignUserId']
+  if (!foreignUserId || typeof foreignUserId !== 'string') {
+    res.status(400).end()
+    return
   }
   const flow = await prisma.flow.findFirst({
     where: {
@@ -57,9 +57,9 @@ app.get("/flows/:flowName", async (req, res) => {
         },
       },
     },
-  });
-  res.json(flow);
-});
+  })
+  res.json(flow)
+})
 
 /**
  * The status of client-executed flows will need to be updated
@@ -67,71 +67,77 @@ app.get("/flows/:flowName", async (req, res) => {
  * is for. The react-joyride wrapper, for example, should call this endpoint
  * when steps are executed.
  */
-app.patch("/flows/:flowId", async (req, res) => {
+app.patch('/flows/:flowId', async (req, res) => {
   interface PatchFlowReq {
-    foreignUserId: string;
+    foreignUserId: string
     /**
      * id of the step to mark as completed
      */
-    stepId: string;
+    stepId: string
   }
   interface PathFlowRes {
-    id: number;
+    id: number
   }
-  const { stepNumber, foreignUserId } = req.body;
+  const { stepNumber, foreignUserId } = req.body
   if (!stepNumber || !foreignUserId) {
-    res.status(400).end();
-    return;
+    res.status(400).end()
+    return
   }
-  const id = Number(req.params["flowId"]);
+  const id = Number(req.params['flowId'])
   await prisma.flow.update({
     where: { id },
     data: {
       currStepNumber: stepNumber + 1,
     },
-  });
-  res.json({ id });
-});
+  })
+  res.json({ id })
+})
 
 /**
  * Returns a list of users and their status for each flow.
  * If you want a UI to consume this data, email matt@joinatlas.ai
  */
-app.get("/users", async (req, res) => {
+app.get('/users', async (req, res) => {
   interface GetUsersRes {
     users: Array<{
-      flows: Array<{ currStepId: string; name: string; steps: Array<any> }>;
-    }>;
+      flows: Array<{ currStepId: string; name: string; steps: Array<any> }>
+    }>
   }
-  const users = await prisma.user.findMany({ include: { flows: true } });
-  res.json(users);
-});
+  const users = await prisma.user.findMany({ include: { flows: true } })
+  res.json(users)
+})
 
 /**
  * Create an event that can trigger a flow
  * for a user
  */
-app.post("/event", async (req, res) => {
+app.post('/event', async (req, res) => {
   interface PostEventReq {
-    foreignUserId: string;
-    eventName: string;
+    foreignUserId: string
+    eventName: string
   }
-  const { foreignUserId, eventName } = req.body;
+  interface PostEventRes {
+    triggeredFlows: Array<string>
+  }
+  const { foreignUserId, eventName } = req.body
   if (!foreignUserId || !eventName) {
-    res.status(400).end();
-    return;
+    res.status(400).end()
+    return
   }
-  const { id } = await prisma.event.create({
+  await prisma.event.create({
     data: {
       name: eventName,
     },
-  });
-  res.json({ id });
-});
+  })
+  const triggeredFlows = await executeEventFlows(config, eventName)
+  res.json({ triggeredFlows })
+})
 
 app.listen(port, () => {
-  const serverFlows = config.flows.filter(({type}: FlowConfig) => type === 'server')
-  serverFlows.forEach(f => {
+  const serverFlows = config.flows.filter(
+    ({ type }: FlowConfig) => type === 'server'
+  )
+  serverFlows.forEach((f) => {
     CronJob.from({
       cronTime: config.cronTime,
       onTick: () => {
@@ -139,6 +145,6 @@ app.listen(port, () => {
       },
       start: true,
     })
-  })  
-  console.log(`[server]: Server is ready at http://localhost:${port}`);
-});
+  })
+  console.log(`[server]: Server is ready at http://localhost:${port}`)
+})

@@ -15,7 +15,7 @@ datasource db {
 
 model User {
   id            Int    @id @default(autoincrement())
-  foreignUserId String
+  foreignUserId String @unique
   flows         Flow[]
 }
 
