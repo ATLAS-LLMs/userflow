@@ -1,7 +1,11 @@
+import { PrismaClient } from "@prisma/client";
 import express, { Express } from "express";
+import bodyParser from "body-parser";
 
 const app: Express = express();
+app.use(bodyParser.json());
 const port = process.env.PORT || 3000;
+const prisma = new PrismaClient();
 
 /**
  * Some flows need to be executed on clients.
@@ -9,7 +13,7 @@ const port = process.env.PORT || 3000;
  * a flow by calling this endpoint and passing
  * user and flow ids.
  */
-app.get("/flows/:flowId", (req, res) => {
+app.get("/flows/:flowName", async (req, res) => {
   interface GetFlowReq {
     /**
      * The application's user id, not our internal one. This could
@@ -37,6 +41,19 @@ app.get("/flows/:flowId", (req, res) => {
     };
     steps: Array<{ id: string } & any>;
   }
+  const flowName = req.params["flowName"];
+  const flow = await prisma.flow.findFirst({
+    where: {
+      name: flowName,
+      users: {
+        some: {
+          foreignUserId: req.body.foreignUserId,
+        },
+      },
+    },
+  });
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(flow));
 });
 
 /**
@@ -47,7 +64,7 @@ app.get("/flows/:flowId", (req, res) => {
  */
 app.patch("/flows/:flowId", (req, res) => {
   interface PatchFlowReq {
-    userId: string;    
+    userId: string;
     /**
      * id of the step to mark as completed
      */

@@ -14,12 +14,14 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id @default(autoincrement())    
+  foreignUserId String
   flows Flow[]
 }
 
 model Flow {
   id     Int   @id @default(autoincrement())
+  name String
   when   Json
   steps  Json
   users User[]

@@ -6,12 +6,14 @@ async function main() {
     update: {},
     create: {
       id: 1,
+      foreignUserId: 'matt@joinatlas.ai'
     },
   });
   await prisma.flow.upsert({
     where: { id: 1 },
     update: {},
     create: {
+      name: 'tour',
       when: {
         source: "localStorage",
         property: "hasCompletedFirstTodo",
