@@ -72,9 +72,7 @@ app.patch("/flows/:flowId", async (req, res) => {
     stepId: string;
   }
   interface PathFlowRes {
-    userId: string;
-    flowId: string;
-    stepNumber: string;
+    id: number
   }
   const { stepNumber, foreignUserId } = req.body;
   if (!stepNumber || !foreignUserId) {
