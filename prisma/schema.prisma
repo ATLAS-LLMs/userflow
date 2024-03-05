@@ -14,15 +14,22 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())    
+  id            Int    @id @default(autoincrement())
   foreignUserId String
-  flows Flow[]
+  flows         Flow[]
 }
 
 model Flow {
-  id     Int   @id @default(autoincrement())
-  name String
-  when   Json
-  steps  Json
-  users User[]
+  id         Int    @id @default(autoincrement())
+  name       String
+  when       Json
+  steps      Json
+  currStepId Int    @default(0)
+  users      User[]
+}
+
+model Event {
+  id Int @id @default(autoincrement())
+  name      String
+  occuredAt DateTime @default(now())
 }

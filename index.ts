@@ -14,13 +14,6 @@ const prisma = new PrismaClient();
  * user and flow ids.
  */
 app.get("/flows/:flowName", async (req, res) => {
-  interface GetFlowReq {
-    /**
-     * The application's user id, not our internal one. This could
-     * be an email or a uuid.
-     */
-    foreignUserId: string;
-  }
   interface GetFlowRes {
     /**
      * Type will be 'none' if there is
@@ -41,19 +34,27 @@ app.get("/flows/:flowName", async (req, res) => {
     };
     steps: Array<{ id: string } & any>;
   }
-  const flowName = req.params["flowName"];
+  const flowName = req.params["flowName"];  
+  /**
+   * The application's user id, not our internal one. This could
+   * be an email or a uuid.
+   */
+  const foreignUserId = req.query['foreignUserId']
+  if (!foreignUserId || typeof foreignUserId !== 'string') {
+    res.end(400)
+    return;
+  }
   const flow = await prisma.flow.findFirst({
     where: {
       name: flowName,
       users: {
         some: {
-          foreignUserId: req.body.foreignUserId,
+          foreignUserId,
         },
       },
     },
   });
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(flow));
+  res.json(flow);
 });
 
 /**
@@ -64,7 +65,7 @@ app.get("/flows/:flowName", async (req, res) => {
  */
 app.patch("/flows/:flowId", (req, res) => {
   interface PatchFlowReq {
-    userId: string;
+    foreignUserId: string;
     /**
      * id of the step to mark as completed
      */
@@ -81,10 +82,12 @@ app.patch("/flows/:flowId", (req, res) => {
  * Returns a list of users and their status for each flow.
  * If you want a UI to consume this data, checkout https://userflow.ai
  */
-app.get("/users", (req, res) => {
+app.get("/users", async (req, res) => {
   interface GetUsersRes {
-    users: Array<{ flows: Array<{ currStepId: string }> }>;
+    users: Array<{ flows: Array<{ currStepId: string; name: string }> }>;
   }
+  const users = await prisma.user.findMany({ include: { flows: true } })
+  res.json();
 });
 
 /**
