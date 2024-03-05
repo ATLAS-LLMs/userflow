@@ -1,4 +1,4 @@
-import { ConditionConfig, Config, FlowConfig, StepConfig, User, UserConfig } from "./config";
+import type { ConditionConfig, Config, FlowConfig, StepConfig, User, UserConfig } from "./config";
 
 export interface PropertyResolver<T = any> {
   resolve(name: string): Promise<T>;
