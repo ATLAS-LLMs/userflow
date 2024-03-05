@@ -36,6 +36,14 @@
     "vite": "^4.4.11",
     "vite-tsconfig-paths": "^4.2.1"
   },
+  "peerDependenciesMeta": {
+    "jest": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -1,22 +1,13 @@
 module.exports = {
   root: true,
   env: {
-    browser: true,
     es2022: true,
     node: true,
   },
-  settings: {
-    react: {
-      version: 'detect',
-    },
-  },
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended-type-checked',
-    'plugin:@typescript-eslint/stylistic-type-checked',
-    'plugin:react/recommended',
-    'plugin:react/jsx-runtime',
-    'plugin:react-hooks/recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/stylistic',
     'plugin:prettier/recommended', // must be last
   ],
   parserOptions: {
@@ -26,7 +17,7 @@ module.exports = {
   },
   ignorePatterns: ['node_modules', 'dist', '*.cjs', '*.js'],
   parser: '@typescript-eslint/parser',
-  plugins: ['react-refresh', 'prettier'],
+  plugins: ['prettier'],
   rules: {
     semi: ['error', 'never', { beforeStatementContinuationChars: 'always' }],
     quotes: [
@@ -55,14 +46,6 @@ module.exports = {
       { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
     ],
     '@typescript-eslint/switch-exhaustiveness-check': 'error',
-    // React rules
-    'react-refresh/only-export-components': [
-      'warn',
-      { allowConstantExport: true },
-    ],
-    'react/display-name': 'off',
-    'react-hooks/exhaustive-deps': 'warn',
-    'react/prop-types': 'off',
 
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-argument': 'off',
