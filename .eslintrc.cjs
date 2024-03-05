@@ -23,7 +23,6 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     project: true,
-    tsconfigRootDir: __dirname,
   },
   ignorePatterns: ['node_modules', 'dist', '*.cjs', '*.js'],
   parser: '@typescript-eslint/parser',
