@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
 import config from '../server-config';
+import { CronJob } from "cron";
 
 const app: Express = express();
 app.use(bodyParser.json());
@@ -127,6 +128,15 @@ app.post("/event", async (req, res) => {
 });
 
 app.listen(port, () => {
-  const serverFlows = config.flows.filter(({type}) === 'server')
+  const serverFlows = config.flows.filter(({type}) => type === 'server')
+  serverFlows.forEach(f => {
+    CronJob.from({
+      cronTime: config.cronTime,
+      onTick: () => {
+        executeFlow(config, f)
+      },
+      start: true,
+    })
+  })  
   console.log(`[server]: Server is ready at http://localhost:${port}`);
 });

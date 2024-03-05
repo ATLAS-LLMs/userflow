@@ -8,7 +8,7 @@ class SegmentPropertyResolver implements PropertyResolver {}
 
 class Condition {
   static from(config: ConditionConfig): Condition {
-    throw new Error("not implemented")
+    throw new Error("not implemented");
   }
 }
 
@@ -30,7 +30,7 @@ class EventCondition implements Condition {
 
 class Step {
   static from(config: StepConfig): Step {
-    throw new Error("Method not implemented")
+    throw new Error("Method not implemented");
   }
 }
 
@@ -38,33 +38,31 @@ interface Step<T = void> {
   execute(user: User): Promise<T>;
 }
 
-async function executeFlow(config: Config) {
-  const { user, flows } = config;
+async function executeFlow(config: Config, flow: FlowConfig) {
+  const { user } = config;
   const users = await getUsers(user);
-  flows.forEach((f) => {
-    users.forEach(async (u) => {
-      if (u.hasExecuted(f)) {
-        return;
-      }
-      // TODO: Re add when parser is implemented
-      // const when =
-      //   typeof f.when === "string"
-      //     ? {
-      //         check(u: User) {
-      //           return Promise.resolve(false);
-      //         },
-      //       }
-      //     : f.when;
-      const condition = Condition.from(f.when)
-      const shouldExecute = await condition.check(u);
-      if (shouldExecute) {
-        f.steps.forEach(async (s) => {
-          const step = Step.from(s)
-          await step.execute(u);
-        });
-        await markExecuted(f, u);
-      }
-    });
+  users.forEach(async (u) => {
+    if (u.hasExecuted(flow)) {
+      return;
+    }
+    // TODO: Re add when parser is implemented
+    // const when =
+    //   typeof f.when === "string"
+    //     ? {
+    //         check(u: User) {
+    //           return Promise.resolve(false);
+    //         },
+    //       }
+    //     : f.when;
+    const condition = Condition.from(flow.when);
+    const shouldExecute = await condition.check(u);
+    if (shouldExecute) {
+      flow.steps.forEach(async (s) => {
+        const step = Step.from(s);
+        await step.execute(u);
+      });
+      await markExecuted(flow, u);
+    }
   });
 }
 

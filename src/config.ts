@@ -50,15 +50,12 @@ type ConditionConfig = '*' | { type: 'event', name: string }
 
 interface FlowConfig {
   name: string;
+  type: 'client' | 'server'
   when: ConditionConfig;
   steps: Array<StepConfig>;
 }
 
-interface ClientFlowConfig {
-  type: 'client'
-}
-
-interface SeverFlowConfig {
+interface SeverFlowConfig extends FlowConfig {
   type: 'server'
   /**
    * Cron string specifcying how often we should check 
@@ -72,6 +69,7 @@ interface UserConfig {
 }
 
 interface Config {
+  cronTime: string
   /**
    * Url for the postgres db backing this service
    */
