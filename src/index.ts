@@ -3,6 +3,8 @@ import express, { Express } from "express";
 import bodyParser from "body-parser";
 import config from '../server-config';
 import { CronJob } from "cron";
+import type { FlowConfig } from './config'
+import { executeFlow } from './executor'
 
 const app: Express = express();
 app.use(bodyParser.json());
@@ -128,7 +130,7 @@ app.post("/event", async (req, res) => {
 });
 
 app.listen(port, () => {
-  const serverFlows = config.flows.filter(({type}) => type === 'server')
+  const serverFlows = config.flows.filter(({type}: FlowConfig) => type === 'server')
   serverFlows.forEach(f => {
     CronJob.from({
       cronTime: config.cronTime,

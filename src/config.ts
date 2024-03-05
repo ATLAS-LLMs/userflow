@@ -1,3 +1,5 @@
+import type { PropertyResolver } from "./executor";
+
 interface Property {
   name: string;
   type: "postgres" | "localstorage" | "segment";
@@ -14,13 +16,13 @@ interface ClientStepConfig {}
 
 interface SendGridStepConfig {}
 
-type StepConfig =
+export type StepConfig =
   | ConditionalStepConfig
   | WaitStepConfig
   | ClientStepConfig
   | SendGridStepConfig;
 
-class User {
+export class User {
   constructor(
     readonly id: string,
     readonly executedFlows: Array<string>,
@@ -31,7 +33,7 @@ class User {
   }
 }
 
-type ConditionConfig = '*' | { type: 'event', name: string }
+export type ConditionConfig = '*' | { type: 'event', name: string }
 
 /**
  * These strings provide a snappy way of specifying a
@@ -48,14 +50,14 @@ type ConditionConfig = '*' | { type: 'event', name: string }
 // TODO: Impelement parser to handle these strings.
 // type UserPropertyConditionExpression = string;
 
-interface FlowConfig {
+export interface FlowConfig {
   name: string;
   type: 'client' | 'server'
   when: ConditionConfig;
   steps: Array<StepConfig>;
 }
 
-interface SeverFlowConfig extends FlowConfig {
+export interface SeverFlowConfig extends FlowConfig {
   type: 'server'
   /**
    * Cron string specifcying how often we should check 
@@ -64,11 +66,11 @@ interface SeverFlowConfig extends FlowConfig {
   schedule: string
 }
 
-interface UserConfig {
+export interface UserConfig {
   properties: Array<Property>;
 }
 
-interface Config {
+export interface Config {
   cronTime: string
   /**
    * Url for the postgres db backing this service

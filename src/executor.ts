@@ -1,10 +1,20 @@
-interface PropertyResolver<T = any> {
+import { ConditionConfig, Config, FlowConfig, StepConfig, User, UserConfig } from "./config";
+
+export interface PropertyResolver<T = any> {
   resolve(name: string): Promise<T>;
 }
 
-class PostgresPropertyResolver implements PropertyResolver {}
+class PostgresPropertyResolver implements PropertyResolver {
+  resolve(name: string): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+}
 
-class SegmentPropertyResolver implements PropertyResolver {}
+class SegmentPropertyResolver implements PropertyResolver {
+  resolve(name: string): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+}
 
 class Condition {
   static from(config: ConditionConfig): Condition {
@@ -38,32 +48,40 @@ interface Step<T = void> {
   execute(user: User): Promise<T>;
 }
 
-async function executeFlow(config: Config, flow: FlowConfig) {
+export async function executeFlow(config: Config, flow: FlowConfig) {
   const { user } = config;
   const users = await getUsers(user);
   users.forEach(async (u) => {
-    if (u.hasExecuted(flow)) {
-      return;
-    }
-    // TODO: Re add when parser is implemented
-    // const when =
-    //   typeof f.when === "string"
-    //     ? {
-    //         check(u: User) {
-    //           return Promise.resolve(false);
-    //         },
-    //       }
-    //     : f.when;
-    const condition = Condition.from(flow.when);
-    const shouldExecute = await condition.check(u);
-    if (shouldExecute) {
-      flow.steps.forEach(async (s) => {
-        const step = Step.from(s);
-        await step.execute(u);
-      });
+    const executed = await executeFlowForUser(u, flow);
+    if (executed) {
       await markExecuted(flow, u);
     }
   });
+}
+
+async function executeFlowForUser(u: User, flow: FlowConfig): Promise<boolean> {
+  if (u.hasExecuted(flow)) {
+    return false;
+  }
+  // TODO: Re add when parser is implemented
+  // const when =
+  //   typeof f.when === "string"
+  //     ? {
+  //         check(u: User) {
+  //           return Promise.resolve(false);
+  //         },
+  //       }
+  //     : f.when;
+  const condition = Condition.from(flow.when);
+  const conditionSatisfied = await condition.check(u);
+  if (!conditionSatisfied) {
+    return false;
+  }
+  flow.steps.forEach(async (s) => {
+    const step = Step.from(s);
+    await step.execute(u);
+  });
+  return true;
 }
 
 function getUsers(user: UserConfig): Promise<Array<User>> {

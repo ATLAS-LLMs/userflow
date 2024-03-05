@@ -1,3 +1,4 @@
+import type { Config } from "./src/config";
 const config: Config = {
   cronTime: "* * * * * 0",
   userflowPostgresUrl: process.env.DATABASE_URL!!,
@@ -23,7 +24,7 @@ const config: Config = {
   },
   flows: [
     {
-      type: 'client',
+      type: "client",
       name: "welcome",
       when: "*",
       steps: [
