@@ -16,20 +16,30 @@ datasource db {
 model User {
   id            Int    @id @default(autoincrement())
   foreignUserId String @unique
-  flows         Flow[]
+  flows         UserFlow[]
+}
+
+model UserFlow {
+  id               Int            @id @default(autoincrement())
+  flowDefinition   Flow @relation(fields: [flowDefinitionId], references: [id])
+  currStepNumber   Int            @default(0)
+  user             User           @relation(fields: [userId], references: [id])
+  flowDefinitionId Int
+  userId           Int
+	@@map("Flow")
 }
 
 model Flow {
-  id         Int    @id @default(autoincrement())
-  name       String
-  when       Json
-  steps      Json
-  currStepNumber Int    @default(0)
-  users      User[]
+  id    Int    @id @default(autoincrement())
+  name  String
+  when  Json
+  steps Json
+  Flow  UserFlow[]
+	@@map("FlowDefinition")
 }
 
 model Event {
-  id Int @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
   occuredAt DateTime @default(now())
 }
