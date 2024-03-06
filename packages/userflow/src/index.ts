@@ -36,7 +36,7 @@ app.get('/flows/:flowId', async (req, res) => {
       value: number | boolean | string
       op: '<' | '>' | '==='
     }
-    steps: Array<{ id: string } & any>
+    steps: ({ id: string } & any)[]
   }
   const flowId = req.params['flowId']
   /**
@@ -48,15 +48,24 @@ app.get('/flows/:flowId', async (req, res) => {
     res.status(400).end()
     return
   }
-  const flow = await prisma.userFlow.findFirst({    
+  const flow = await prisma.flow.findFirst({
+    where: {
+      id: Number(flowId),
+    },
+  })
+  const userFlow = await prisma.userFlow.findFirst({
     where: {
       flowDefinitionId: Number(flowId),
       user: {
-        foreignUserId
-      }
+        foreignUserId,
+      },
     },
   })
-  res.json(flow)
+  const response = {
+    ...flow,
+    currentStepIndex: userFlow?.currStepNumber,
+  }
+  res.json(response)
 })
 
 /**
@@ -97,9 +106,9 @@ app.patch('/flows/:flowId', async (req, res) => {
  */
 app.get('/users', async (req, res) => {
   interface GetUsersRes {
-    users: Array<{
-      flows: Array<{ currStepId: string; name: string; steps: Array<any> }>
-    }>
+    users: {
+      flows: { currStepId: string; name: string; steps: any[] }[]
+    }[]
   }
   const users = await prisma.user.findMany({ include: { flows: true } })
   res.json(users)
@@ -115,7 +124,7 @@ app.post('/event', async (req, res) => {
     eventName: string
   }
   interface PostEventRes {
-    triggeredFlows: Array<string>
+    triggeredFlows: string[]
   }
   const { foreignUserId, eventName } = req.body
   if (!foreignUserId || !eventName) {
