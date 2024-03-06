@@ -17,7 +17,7 @@ const prisma = new PrismaClient()
  * a flow by calling this endpoint and passing
  * user and flow ids.
  */
-app.get('/flows/:flowName', async (req, res) => {
+app.get('/flows/:flowId', async (req, res) => {
   interface GetFlowRes {
     /**
      * Type will be 'none' if there is
@@ -38,7 +38,7 @@ app.get('/flows/:flowName', async (req, res) => {
     }
     steps: Array<{ id: string } & any>
   }
-  const flowName = req.params['flowName']
+  const flowId = req.params['flowId']
   /**
    * The application's user id, not our internal one. This could
    * be an email or a uuid.
@@ -48,14 +48,9 @@ app.get('/flows/:flowName', async (req, res) => {
     res.status(400).end()
     return
   }
-  const flow = await prisma.flow.findFirst({
+  const flow = await prisma.userFlow.findFirst({
     where: {
-      name: flowName,
-      users: {
-        some: {
-          foreignUserId,
-        },
-      },
+      flowDefinitionId: Number(flowId),
     },
   })
   res.json(flow)
@@ -84,7 +79,7 @@ app.patch('/flows/:flowId', async (req, res) => {
     return
   }
   const id = Number(req.params['flowId'])
-  await prisma.flow.update({
+  await prisma.userFlow.update({
     where: { id },
     data: {
       currStepNumber: stepNumber + 1,
