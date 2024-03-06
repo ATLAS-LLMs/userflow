@@ -48,9 +48,12 @@ app.get('/flows/:flowId', async (req, res) => {
     res.status(400).end()
     return
   }
-  const flow = await prisma.userFlow.findFirst({
+  const flow = await prisma.userFlow.findFirst({    
     where: {
       flowDefinitionId: Number(flowId),
+      user: {
+        foreignUserId
+      }
     },
   })
   res.json(flow)
